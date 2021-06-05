@@ -13,21 +13,21 @@ start
   = graph
 
 graph
-  = _ strict:"strict"i? _ type:("graph"i / "digraph"i) _ id:id? _ "{" children:stmts ? _ "}" _ {
+  = _ strict:"strict"i? _ type:("graph"i / "digraph"i) _ id:id? _ "{" body:cluster_statements ? _ "}" _ {
       directed = type.toLowerCase() === "digraph";
       return {
         type: 'graph',
         id: id,
         directed: directed,
         strict: !!strict,
-        children: children ?? [],
+        body: body ?? [],
       };
     }
 
-stmts
-  = _ s:stmt _ ";"? e:(_ other:stmt _";"?  { return other; })* { return [s].concat(e); }
+cluster_statements
+  = _ s:_cluster_statement _ ";"? e:(_ other:_cluster_statement _";"?  { return other; })* { return [s].concat(e); }
 
-stmt
+_cluster_statement
   = attribute
   / attributes
   / edge
@@ -136,11 +136,11 @@ _port 'port'
   }
 
 subgraph
-  = g:('subgraph'i _ id:id? _ { return { type:'subgraph', id:id }})? '{' s:stmts? _ '}' {
+  = g:('subgraph'i _ id:id? _ { return { type:'subgraph', id:id }})? '{' body:cluster_statements? _ '}' {
         g = g || {
           type:'subgraph',
+          body: body || [],
         };
-        g.children = s || [];
         return g;
       }
 

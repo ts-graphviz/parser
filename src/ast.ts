@@ -5,11 +5,14 @@ import { parse as _parse, SyntaxError } from './dot.pegjs';
  * The `AST` module provides the ability to handle the AST as a result of parsing the dot language
  * for lower level operations.
  *
- * @experimental
+ * @alpha
  */
 export namespace AST {
   type ValueOf<T> = T[keyof T];
 
+  /**
+   * DOT object types.
+   */
   export const Types = Object.freeze({
     Graph: 'graph',
     Attribute: 'attribute',
@@ -17,15 +20,33 @@ export namespace AST {
     Edge: 'edge',
     Node: 'node',
     Subgraph: 'subgraph',
+    ClusterStatements: 'cluster_statements',
   } as const);
   export type Types = ValueOf<typeof Types>;
 
-  export interface Graph {
+  /**
+   * AST node.
+   */
+  export interface ASTBaseNode {
+    /**
+     * Every leaf interface that extends ASTBaseNode
+     * must specify a type property.
+     */
+    type: string;
+  }
+
+  export interface ASTBaseCluster extends ASTBaseNode {
+    body: ClusterStatement[];
+  }
+
+  /**
+   * Graph AST object.
+   */
+  export interface Graph extends ASTBaseCluster {
     type: typeof Types.Graph;
     id?: string;
     directed: boolean;
     strict: boolean;
-    children: GraphObject[];
   }
 
   export interface KeyValue {
@@ -33,10 +54,14 @@ export namespace AST {
     value: string;
   }
 
-  export interface Attribute extends KeyValue {
+  /**
+   * Attribute AST object.
+   */
+  export interface Attribute extends ASTBaseNode, KeyValue {
     type: typeof Types.Attribute;
   }
 
+  /** Attributes AST object. */
   export namespace Attributes {
     export const Target = Object.freeze({
       Graph: 'graph',
@@ -46,7 +71,7 @@ export namespace AST {
     export type Target = ValueOf<typeof Target>;
   }
 
-  export interface Attributes {
+  export interface Attributes extends ASTBaseNode {
     type: typeof Types.Attributes;
     target: Attributes.Target;
     attributes: KeyValue[];
@@ -58,25 +83,27 @@ export namespace AST {
     commpass?: Compass;
   }
 
-  export interface Edge {
+  /** Edge AST object. */
+  export interface Edge extends ASTBaseNode {
     type: typeof Types.Edge;
     targets: ID[];
     attributes: KeyValue[];
   }
 
-  export interface Node {
+  /** Node AST object. */
+  export interface Node extends ASTBaseNode {
     type: typeof Types.Node;
     id: string;
     attributes: KeyValue[];
   }
 
-  export interface Subgraph {
+  /** Subgraph AST object. */
+  export interface Subgraph extends ASTBaseCluster {
     type: typeof Types.Subgraph;
     id?: string;
-    children: GraphObject[];
   }
 
-  export type GraphObject = Attribute | Attributes | Edge | Node | Subgraph;
+  export type ClusterStatement = Attribute | Attributes | Edge | Node | Subgraph;
 
   export type Rule =
     | typeof Types.Graph
@@ -84,20 +111,21 @@ export namespace AST {
     | typeof Types.Edge
     | typeof Types.Attributes
     | typeof Types.Attribute
-    | 'stmts';
+    | typeof Types.ClusterStatements;
 
+  /**
+   * Option interface for {@link AST.parse} function.
+   */
   export interface ParseOption<T extends Rule = Rule> {
-    start?: T;
+    /**  */
+    rule?: T;
   }
 
   /**
    * The basic usage is the same as the `parse` function,
    * except that it returns the dot language AST.
    *
-   * @param dot A string in the dot language to be parsed.
-   *
    * ```ts
-   * import { inspect } from 'util';
    * import { AST } from '@ts-graphviz/parser';
    *
    * const ast = AST.parse(`
@@ -115,64 +143,89 @@ export namespace AST {
    *   }
    * `);
    *
-   * console.log(inspect(ast, false, 6));
+   * console.log(ast);
+   * // {
+   * //   kind: 'graph',
+   * //   id: 'example',
+   * //   directed: true,
+   * //   strict: true,
+   * //   body: [
+   * //     {
+   * //       kind: 'subgraph',
+   * //       id: 'cluster_0',
+   * //       body: [
+   * //         { kind: 'attribute', key: 'label', value: 'Subgraph A' },
+   * //         {
+   * //           kind: 'edge',
+   * //           targets: [ { id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' } ],
+   * //           attributes: []
+   * //         }
+   * //       ]
+   * //     },
+   * //     {
+   * //       kind: 'subgraph',
+   * //       id: 'cluster_1',
+   * //       body: [
+   * //         { kind: 'attribute', key: 'label', value: 'Subgraph B' },
+   * //         {
+   * //           kind: 'edge',
+   * //           targets: [ { id: 'a' }, { id: 'f' } ],
+   * //           attributes: []
+   * //         },
+   * //         {
+   * //           kind: 'edge',
+   * //           targets: [ { id: 'f' }, { id: 'c' } ],
+   * //           attributes: []
+   * //         }
+   * //       ]
+   * //     }
+   * //   ]
+   * // }
    * ```
    *
-   * In the case of the above code, the structure of AST is as follows.
+   * @param dot string in the dot language to be parsed.
+   * @param options.rule Object type of dot string.
+   * This can be "node", "edge", "graph",
+   * "attributes", "attribute", "cluster_statements".
    *
-   * ```ts
-   * {
-   *   kind: 'graph',
-   *   id: 'example',
-   *   directed: true,
-   *   strict: true,
-   *   children: [
-   *     {
-   *       kind: 'subgraph',
-   *       id: 'cluster_0',
-   *       children: [
-   *         { kind: 'attribute', key: 'label', value: 'Subgraph A' },
-   *         {
-   *           kind: 'edge',
-   *           targets: [ { id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' } ],
-   *           attributes: []
-   *         }
-   *       ]
-   *     },
-   *     {
-   *       kind: 'subgraph',
-   *       id: 'cluster_1',
-   *       children: [
-   *         { kind: 'attribute', key: 'label', value: 'Subgraph B' },
-   *         {
-   *           kind: 'edge',
-   *           targets: [ { id: 'a' }, { id: 'f' } ],
-   *           attributes: []
-   *         },
-   *         {
-   *           kind: 'edge',
-   *           targets: [ { id: 'f' }, { id: 'c' } ],
-   *           attributes: []
-   *         }
-   *       ]
-   *     }
-   *   ]
-   * }
-   * ```
+   * @example
+   * import { AST } from '@ts-graphviz/parser';
+   *
+   * const ast = AST.parse(
+   *   `test [
+   *     style=filled;
+   *     color=lightgrey;
+   *     label = "example #1";
+   *   ];`,
+   *   { rule: AST.Types.Node },
+   * );
+   *
+   * console.log(ast);
+   * // {
+   * //   type: 'node',
+   * //   id: 'test',
+   * //   attributes: [
+   * //     { key: 'style', value: 'filled' },
+   * //     { key: 'color', value: 'lightgrey' },
+   * //     { key: 'label', value: 'example #1' }
+   * //   ]
+   * // }
+   *
+   * @returns The AST object of the parse result is returned.
    *
    * @throws {SyntaxError}
    */
+  export function parse(dot: string): Graph;
   export function parse(dot: string, options: ParseOption<typeof Types.Edge>): Edge;
   export function parse(dot: string, options: ParseOption<typeof Types.Node>): Node;
   export function parse(dot: string, options: ParseOption<typeof Types.Graph>): Graph;
   export function parse(dot: string, options: ParseOption<typeof Types.Attribute>): Attribute;
   export function parse(dot: string, options: ParseOption<typeof Types.Attributes>): Attributes;
-  export function parse(dot: string, options: ParseOption<'stmts'>): GraphObject[];
-  export function parse(dot: string, options?: ParseOption): Graph;
-  export function parse(dot: string, options?: ParseOption): unknown {
+  export function parse(dot: string, options: ParseOption<typeof Types.ClusterStatements>): ClusterStatement[];
+  export function parse(dot: string, options?: ParseOption): Graph | ClusterStatement | ClusterStatement[] {
     try {
       return _parse(dot, {
-        startRule: options?.start,
+        startRule: options?.rule,
       });
     } catch (error) {
       Object.setPrototypeOf(error, SyntaxError.prototype);

@@ -41,7 +41,7 @@ describe('attribute', () => {
     ],
   ])('#', (dot) => {
     const result = AST.parse(dot);
-    expect(result.children).toMatchObject([
+    expect(result.body).toMatchObject([
       {
         type: AST.Types.Attribute,
         key: 'style',
@@ -71,7 +71,7 @@ describe('attributes', () => {
         label = "example #1";
       ]
     `,
-      { start: AST.Types.Attributes },
+      { rule: AST.Types.Attributes },
     );
     expect(result).toMatchInlineSnapshot(`
       Object {
@@ -102,7 +102,7 @@ describe('attributes', () => {
         color=red;
         label = "example example";
       ];`,
-      { start: AST.Types.Attributes },
+      { rule: AST.Types.Attributes },
     );
     expect(result).toMatchInlineSnapshot(`
       Object {
@@ -124,7 +124,7 @@ describe('attributes', () => {
 
   test('graph', () => {
     const result = AST.parse('graph [ fillcolor=red, label = "example example"];', {
-      start: AST.Types.Attributes,
+      rule: AST.Types.Attributes,
     });
     expect(result).toMatchInlineSnapshot(`
       Object {
@@ -147,7 +147,7 @@ describe('attributes', () => {
 
 describe('edge', () => {
   test('simple edge', () => {
-    const result = AST.parse('a -> b;', { start: AST.Types.Edge });
+    const result = AST.parse('a -> b;', { rule: AST.Types.Edge });
     expect(result).toMatchInlineSnapshot(`
       Object {
         "attributes": Array [],
@@ -167,7 +167,7 @@ describe('edge', () => {
   });
 
   test('edge with port', () => {
-    const result = AST.parse('a:p1 -> b:p2 -> c:p3:w -> d:w;', { start: AST.Types.Edge });
+    const result = AST.parse('a:p1 -> b:p2 -> c:p3:w -> d:w;', { rule: AST.Types.Edge });
     expect(result).toMatchInlineSnapshot(`
       Object {
         "attributes": Array [],
@@ -207,7 +207,7 @@ describe('edge', () => {
           label = "example #1";
         ];
       `,
-      { start: AST.Types.Edge },
+      { rule: AST.Types.Edge },
     );
     expect(result).toMatchInlineSnapshot(`
       Object {
@@ -237,7 +237,7 @@ describe('edge', () => {
   });
 
   test('grouped edge targets', () => {
-    const result = AST.parse('{a1, a2} -> {b1, b2};', { start: AST.Types.Edge });
+    const result = AST.parse('{a1, a2} -> {b1, b2};', { rule: AST.Types.Edge });
     expect(result).toMatchInlineSnapshot(`
       Object {
         "attributes": Array [],
@@ -269,7 +269,7 @@ describe('edge', () => {
   });
 
   test('grouped ported edge targets', () => {
-    const result = AST.parse('{a1:p1, a2:p2:w} -> {b1:e, b2:p3};', { start: AST.Types.Edge });
+    const result = AST.parse('{a1:p1, a2:p2:w} -> {b1:e, b2:p3};', { rule: AST.Types.Edge });
     expect(result).toMatchInlineSnapshot(`
       Object {
         "attributes": Array [],
@@ -310,7 +310,7 @@ describe('graph', () => {
     const result = AST.parse('digraph test {}');
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "children": Array [],
+        "body": Array [],
         "directed": true,
         "id": "test",
         "strict": false,
@@ -323,7 +323,7 @@ describe('graph', () => {
     const result = AST.parse('strict digraph test {}');
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "children": Array [],
+        "body": Array [],
         "directed": true,
         "id": "test",
         "strict": true,
@@ -336,7 +336,7 @@ describe('graph', () => {
     const result = AST.parse('digraph "test" {}');
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "children": Array [],
+        "body": Array [],
         "directed": true,
         "id": "test",
         "strict": false,
@@ -349,7 +349,7 @@ describe('graph', () => {
     const result = AST.parse('digraph {}');
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "children": Array [],
+        "body": Array [],
         "directed": true,
         "id": null,
         "strict": false,
@@ -362,7 +362,7 @@ describe('graph', () => {
     const result = AST.parse('graph test {}');
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "children": Array [],
+        "body": Array [],
         "directed": false,
         "id": "test",
         "strict": false,
@@ -375,7 +375,7 @@ describe('graph', () => {
     const result = AST.parse('strict graph test {}');
     expect(result).toMatchInlineSnapshot(`
       Object {
-        "children": Array [],
+        "body": Array [],
         "directed": false,
         "id": "test",
         "strict": true,
@@ -387,7 +387,7 @@ describe('graph', () => {
 
 describe('node', () => {
   test('simple node', () => {
-    const result = AST.parse('test;', { start: AST.Types.Node });
+    const result = AST.parse('test;', { rule: AST.Types.Node });
     expect(result).toMatchInlineSnapshot(`
       Object {
         "attributes": Array [],
@@ -406,7 +406,7 @@ describe('node', () => {
           label = "example #1";
         ];
       `,
-      { start: AST.Types.Node },
+      { rule: AST.Types.Node },
     );
     expect(result).toMatchInlineSnapshot(`
       Object {

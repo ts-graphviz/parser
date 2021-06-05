@@ -91,12 +91,16 @@ const G = dot`
 The `AST` module provides the ability to handle the AST as a result of parsing the dot language
 for lower level operations.
 
-#### `AST.parse` function
+#### function `AST.parse(dot: string, options?: ParseOption)`
 
 The basic usage is the same as the `parse` function, except that it returns the dot language AST.
 
+- Parameters
+  - `dot` -- string in the dot language to be parsed.
+  - `options.rule` -- Object type of dot string.
+    - This can be `"node"`, `"edge"`, `"graph"`, `"attributes"`, `"attribute", "cluster_statements"`.
+
 ```ts
-import { inspect } from 'util';
 import { AST } from '@ts-graphviz/parser';
 
 const ast = AST.parse(`
@@ -114,49 +118,70 @@ const ast = AST.parse(`
   }
 `);
 
-console.log(inspect(ast, false, 6));
+console.log(ast);
+// {
+//   type: 'graph',
+//   id: 'example',
+//   directed: true,
+//   strict: true,
+//   body: [
+//     {
+//       type: 'subgraph',
+//       id: 'cluster_0',
+//       body: [
+//         { type: 'attribute', key: 'label', value: 'Subgraph A' },
+//         {
+//           type: 'edge',
+//           targets: [ { id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' } ],
+//           attributes: []
+//         }
+//       ]
+//     },
+//     {
+//       type: 'subgraph',
+//       id: 'cluster_1',
+//       body: [
+//         { type: 'attribute', key: 'label', value: 'Subgraph B' },
+//         {
+//           type: 'edge',
+//           targets: [ { id: 'a' }, { id: 'f' } ],
+//           attributes: []
+//         },
+//         {
+//           type: 'edge',
+//           targets: [ { id: 'f' }, { id: 'c' } ],
+//           attributes: []
+//         }
+//       ]
+//     }
+//   ]
+// }
 ```
 
-In the case of the above code, the structure of AST is as follows.
+##### Example: Specifying the `rule` option
 
 ```ts
-{
-  type: 'graph',
-  id: 'example',
-  directed: true,
-  strict: true,
-  children: [
-    {
-      type: 'subgraph',
-      id: 'cluster_0',
-      children: [
-        { type: 'attribute', key: 'label', value: 'Subgraph A' },
-        {
-          type: 'edge',
-          targets: [ { id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' } ],
-          attributes: []
-        }
-      ]
-    },
-    {
-      type: 'subgraph',
-      id: 'cluster_1',
-      children: [
-        { type: 'attribute', key: 'label', value: 'Subgraph B' },
-        {
-          type: 'edge',
-          targets: [ { id: 'a' }, { id: 'f' } ],
-          attributes: []
-        },
-        {
-          type: 'edge',
-          targets: [ { id: 'f' }, { id: 'c' } ],
-          attributes: []
-        }
-      ]
-    }
-  ]
-}
+import { AST } from '@ts-graphviz/parser';
+
+const ast = AST.parse(
+  `test [
+    style=filled;
+    color=lightgrey;
+    label = "example #1";
+  ];`,
+  { rule: AST.Types.Node },
+);
+
+console.log(ast);
+// {
+//   type: 'node',
+//   id: 'test',
+//   attributes: [
+//     { key: 'style', value: 'filled' },
+//     { key: 'color', value: 'lightgrey' },
+//     { key: 'label', value: 'example #1' }
+//   ]
+// }
 ```
 
 ## See Also

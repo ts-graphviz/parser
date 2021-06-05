@@ -1,12 +1,12 @@
 import { ICluster, Digraph, Graph, RootCluster } from 'ts-graphviz';
 import { AST } from './ast';
 
-function applyToCluster(cluster: ICluster, stmts: AST.GraphObject[]): void {
-  for (const stmt of stmts) {
+function applyStatements(cluster: ICluster, statements: AST.ClusterStatement[]): void {
+  for (const stmt of statements) {
     switch (stmt.type) {
       case AST.Types.Subgraph:
         const subgraph = stmt.id ? cluster.subgraph(stmt.id) : cluster.subgraph();
-        applyToCluster(subgraph, stmt.children);
+        applyStatements(subgraph, stmt.body);
         break;
       case AST.Types.Attribute:
         cluster.set(stmt.key, stmt.value);
@@ -44,6 +44,6 @@ function applyToCluster(cluster: ICluster, stmts: AST.GraphObject[]): void {
 export function convert(root: AST.Graph): RootCluster {
   const Root = root.directed ? Digraph : Graph;
   const g = new Root(root.id, root.strict);
-  applyToCluster(g, root.children);
+  applyStatements(g, root.body);
   return g;
 }
