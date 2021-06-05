@@ -10,10 +10,10 @@
 }
 
 start
-  = Graph
+  = graph
 
-Graph
-  = _ strict:"strict"i? _ type:("graph"i / "digraph"i) _ id:ID? _ "{" children:StmtList ? _ "}" _ {
+graph
+  = _ strict:"strict"i? _ type:("graph"i / "digraph"i) _ id:id? _ "{" children:stmts ? _ "}" _ {
       directed = type.toLowerCase() === "digraph";
       return {
         type: 'graph',
@@ -24,27 +24,27 @@ Graph
       };
     }
 
-StmtList
-  = _ s:Stmt _ ";"? e:(_ other:Stmt _";"?  { return other; })* { return [s].concat(e); }
+stmts
+  = _ s:stmt _ ";"? e:(_ other:stmt _";"?  { return other; })* { return [s].concat(e); }
 
-Stmt
-  = ClusterAttr
-  / Attributes
-  / Edge
-  / Subgraph
-  / Node
+stmt
+  = attribute
+  / attributes
+  / edge
+  / subgraph
+  / node
 
-ClusterAttr
-  = key:ID _ '=' _ value:ID {
+attribute
+  = key:id _ '=' _ value:id ';'? {
     return {
       type: 'attribute',
       key: key,
-      value: value
+      value: value,
     };
   }
 
-Attributes
-  = target:('graph'i/'node'i/'edge'i) attributes:AttributeList {
+attributes
+  = target:('graph'i/'node'i/'edge'i) attributes:_attribute_list ';'? {
      return {
        type: 'attributes',
        target: target,
@@ -52,101 +52,102 @@ Attributes
      };
   }
 
-AttributeList
-  = _ '[' _ list:AList? _ ']' _ rest:AttributeList? {
+_attribute_list
+  = _ '[' _ list:_a_list? _ ']' _ rest:_attribute_list? {
     return (list || []).concat(rest || []);
   }
 
-AList
-  = _ key:ID value:(_ '=' _ v:ID {return v})? _ (',' / ';')? rest:AList? {
+_a_list
+  = _ key:id value:(_ '=' _ v:id {return v})? _ (',' / ';')? rest:_a_list? {
         return [{
           key:key,
           value: value
         }].concat(rest || []);
     }
 
-IDList = _ id:NodeId _ ',' ? rest:IDList? {
+_id_list = _ id:node_ref _ ',' ? rest:_id_list? {
     return [id].concat(rest || []);
 }
 
-edgeTargetGroup
-  = '{' s:IDList? _ '}' {
+_edge_target_group
+  = '{' s:_id_list? _ '}' {
     return s
   }
 
 
-edgeTarget
-  = id: (edgeTargetGroup / NodeId) {
+_edge_target
+  = id: (_edge_target_group / node_ref) {
     return id;
   }
 
-Edge
-  = id:(edgeTarget) rhs:edgeRHS attributes:AttributeList? {
+edge
+  = id:(_edge_target) rhs:_edge_rhs attributes:_attribute_list? ';'? {
        return {
          type: 'edge',
          attributes:attributes || [],
-         targets: [id, ...rhs.map((v: any) => v.id)],
+         targets: [id, ...rhs],
        };
     }
 
-edgeRHS
-  = _ edgeop:('->'/'--') _ id:edgeTarget _ rest:edgeRHS? {
+_edge_rhs
+  = _ edgeop:('->'/'--') _ id:_edge_target _ rest:_edge_rhs? {
       if (directed && edgeop === '--') {
         throw Error();
       }
-      return [{
-        type:'edgeRHS',
-        edgeop:edgeop,
-        id:id
-      }].concat(rest || []);
+      return [id].concat(rest || []);
   }
 
-Node
-  = node_id:NodeId attributes:AttributeList? {
+node
+  = id:id attributes:_attribute_list?';'? {
     return {
       type: 'node',
-      id: node_id.id,
-      attributes: attributes || []
+      id: id,
+      attributes: attributes || [],
     };
   }
 
-NodeId
-  = id:ID port:port? {
+node_ref
+  = id:id port:_port? {
       return port ? {
         type: 'id',
-        id: id, ...port
+        id,
+        ...port,
       } : {
         type: 'id',
-        id: id
+        id,
       };
   }
 
-port 'port'
-  = ':' port:ID pt:(':' pt:compass_pt {return pt})? {
+_port 'port'
+  = ':' port:id pt:(':' pt:_compass_pt {return pt})? {
     if (['n','ne','e','se','s','sw','w','nw'].includes(port)) {
       return {
         compass: port,
       };
+    } else if (pt) {
+      return {
+        port:port,
+        compass:pt
+      };
     }
     return {
-      port:port,
-      compass:pt || undefined
+      port: port,
     };
   }
 
-Subgraph
-  = g:('subgraph'i _ id:ID? _ { return { type:'subgraph', id:id }})? '{' s:StmtList? _ '}' {
+subgraph
+  = g:('subgraph'i _ id:id? _ { return { type:'subgraph', id:id }})? '{' s:stmts? _ '}' {
         g = g || {
-          type:'subgraph'
+          type:'subgraph',
         };
         g.children = s || [];
         return g;
       }
 
-compass_pt
+_compass_pt
   = 'n'/'ne'/'e'/'se'/'s'/'sw'/'w'/'nw'
 
-ID
+id
   = STRING
   / NUMBER_STRING
   / NUMBER

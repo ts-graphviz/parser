@@ -1,6 +1,12 @@
 import { Compass } from 'ts-graphviz';
 import { parse as _parse, SyntaxError } from './dot.pegjs';
 
+/**
+ * The `AST` module provides the ability to handle the AST as a result of parsing the dot language
+ * for lower level operations.
+ *
+ * @experimental
+ */
 export namespace AST {
   type ValueOf<T> = T[keyof T];
 
@@ -72,9 +78,23 @@ export namespace AST {
 
   export type GraphObject = Attribute | Attributes | Edge | Node | Subgraph;
 
+  export type Rule =
+    | typeof Types.Graph
+    | typeof Types.Node
+    | typeof Types.Edge
+    | typeof Types.Attributes
+    | typeof Types.Attribute
+    | 'stmts';
+
+  export interface ParseOption<T extends Rule = Rule> {
+    start?: T;
+  }
+
   /**
    * The basic usage is the same as the `parse` function,
    * except that it returns the dot language AST.
+   *
+   * @param dot A string in the dot language to be parsed.
    *
    * ```ts
    * import { inspect } from 'util';
@@ -139,11 +159,21 @@ export namespace AST {
    *   ]
    * }
    * ```
+   *
    * @throws {SyntaxError}
    */
-  export function parse(dot: string): Graph {
+  export function parse(dot: string, options: ParseOption<typeof Types.Edge>): Edge;
+  export function parse(dot: string, options: ParseOption<typeof Types.Node>): Node;
+  export function parse(dot: string, options: ParseOption<typeof Types.Graph>): Graph;
+  export function parse(dot: string, options: ParseOption<typeof Types.Attribute>): Attribute;
+  export function parse(dot: string, options: ParseOption<typeof Types.Attributes>): Attributes;
+  export function parse(dot: string, options: ParseOption<'stmts'>): GraphObject[];
+  export function parse(dot: string, options?: ParseOption): Graph;
+  export function parse(dot: string, options?: ParseOption): unknown {
     try {
-      return _parse(dot);
+      return _parse(dot, {
+        startRule: options?.start,
+      });
     } catch (error) {
       Object.setPrototypeOf(error, SyntaxError.prototype);
       throw error;
