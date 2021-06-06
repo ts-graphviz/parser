@@ -136,12 +136,18 @@ _port 'port'
   }
 
 subgraph
-  = g:('subgraph'i _ id:id? _ { return { type:'subgraph', id:id }})? '{' body:cluster_statements? _ '}' {
-        g = g || {
+  = subgraph_id:('subgraph'i _ id:id? _ { return id; })? '{' body:cluster_statements? _ '}' {
+        if (subgraph_id) {
+          return {
+            type:'subgraph',
+            id: subgraph_id,
+            body: body || [],
+          };
+        }
+        return {
           type:'subgraph',
           body: body || [],
         };
-        return g;
       }
 
 _compass_pt

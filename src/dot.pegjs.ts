@@ -312,14 +312,20 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$c48 = 'subgraph';
   const peg$c49 = peg$literalExpectation('subgraph', true);
   const peg$c50 = function (id: any): any {
-    return { type: 'subgraph', id: id };
+    return id;
   };
-  const peg$c51 = function (g: any, body: any): any {
-    g = g || {
+  const peg$c51 = function (subgraph_id: any, body: any): any {
+    if (subgraph_id) {
+      return {
+        type: 'subgraph',
+        id: subgraph_id,
+        body: body || [],
+      };
+    }
+    return {
       type: 'subgraph',
       body: body || [],
     };
-    return g;
   };
   const peg$c52 = 'n';
   const peg$c53 = peg$literalExpectation('n', false);
