@@ -24,11 +24,17 @@ $ npm install -S @ts-graphviz/parser
 
 ## High level API
 
-### `parse` function
+### `function parse(dot: string, options?: ParseOption)`
 
 Parse a string written in dot language and convert it to a model.
 
-The return value is a `Graph` or `Digraph` that inherits from `RootCluster`.
+The returned values are [ts-graphviz](https://github.com/ts-graphviz/ts-graphviz) models
+such as `Digraph`, `Graph`, `Node`, `Edge`, `Subgraph`.
+
+- Parameters
+  - `dot` -- string in the dot language to be parsed.
+  - `options.rule` -- Object type of dot string.
+    - This can be `"graph"`, `"subgraph"`, `"node"`, `"edge"`.
 
 ```ts
 import { parse } from '@ts-graphviz/parser';
@@ -63,6 +69,25 @@ try {
 }
 ```
 
+### Example: parse as Node instance
+
+```ts
+import { Node } from 'ts-graphviz';
+import { parse } from '@ts-graphviz/parser';
+
+const node = parse(
+  `test [
+    style=filled;
+    color=lightgrey;
+    label = "example #1";
+  ];`,
+  { rule: 'node' },
+);
+
+console.log(node instanceof Node);
+// true
+```
+
 ### `dot` tagged template
 
 > This is an experimental API.
@@ -91,14 +116,14 @@ const G = dot`
 The `AST` module provides the ability to handle the AST as a result of parsing the dot language
 for lower level operations.
 
-#### function `AST.parse(dot: string, options?: ParseOption)`
+#### `function AST.parse(dot: string, options?: ParseOption)`
 
 The basic usage is the same as the `parse` function, except that it returns the dot language AST.
 
 - Parameters
   - `dot` -- string in the dot language to be parsed.
   - `options.rule` -- Object type of dot string.
-    - This can be `"node"`, `"edge"`, `"graph"`, `"attributes"`, `"attribute", "cluster_statements"`.
+    - This can be `"graph"`, `"subgraph"`, `"node"`, `"edge"`, `"attributes"`, `"attribute", "cluster_statements"`.
 
 ```ts
 import { AST } from '@ts-graphviz/parser';
@@ -169,7 +194,7 @@ const ast = AST.parse(
     color=lightgrey;
     label = "example #1";
   ];`,
-  { rule: AST.Types.Node },
+  { rule: 'node' },
 );
 
 console.log(ast);

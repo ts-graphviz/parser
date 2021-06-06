@@ -185,7 +185,7 @@ export namespace AST {
    *
    * @param dot string in the dot language to be parsed.
    * @param options.rule Object type of dot string.
-   * This can be "node", "edge", "graph",
+   * This can be "graph", "subgraph", "node", "edge",
    * "attributes", "attribute", "cluster_statements".
    *
    * @example
@@ -197,7 +197,7 @@ export namespace AST {
    *     color=lightgrey;
    *     label = "example #1";
    *   ];`,
-   *   { rule: AST.Types.Node },
+   *   { rule: 'node' },
    * );
    *
    * console.log(ast);

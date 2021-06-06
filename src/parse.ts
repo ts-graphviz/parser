@@ -9,8 +9,9 @@ export type ParseOption<T extends Rule = Rule> = AST.ParseOption<T>;
 /**
  * Parse string written in dot language and convert it to a model.
  *
- * @description
- * The return value is a `Graph` or `Digraph` that inherits from `RootCluster`.
+ * @remarks
+ * The returned values are [ts-graphviz](https://github.com/ts-graphviz/ts-graphviz) models
+ * such as `Digraph`, `Graph`, `Node`, `Edge`, `Subgraph`.
  *
  * ```ts
  * import { parse } from '@ts-graphviz/parser';
@@ -46,6 +47,26 @@ export type ParseOption<T extends Rule = Rule> = AST.ParseOption<T>;
  * ```
  *
  * @param dot string written in the dot language.
+ * @param options.rule Object type of dot string.
+ * This can be "graph", "subgraph", "node", "edge".
+ *
+ * @example
+ * ```
+ * import { Node } from 'ts-graphviz';
+ * import { parse } from '@ts-graphviz/parser';
+ *
+ * const node = parse(
+ *   `test [
+ *     style=filled;
+ *     color=lightgrey;
+ *     label = "example #1";
+ *   ];`,
+ *   { rule: 'node' },
+ * );
+ *
+ * console.log(node instanceof Node);
+ * // true
+ * ```
  * @throws {SyntaxError}
  */
 export function parse(dot: string): RootCluster;
