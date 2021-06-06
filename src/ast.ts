@@ -110,6 +110,7 @@ export namespace AST {
     | typeof Types.Node
     | typeof Types.Edge
     | typeof Types.Attributes
+    | typeof Types.Subgraph
     | typeof Types.Attribute
     | typeof Types.ClusterStatements;
 
@@ -117,7 +118,6 @@ export namespace AST {
    * Option interface for {@link AST.parse} function.
    */
   export interface ParseOption<T extends Rule = Rule> {
-    /**  */
     rule?: T;
   }
 
@@ -221,11 +221,16 @@ export namespace AST {
   export function parse(dot: string, options: ParseOption<typeof Types.Graph>): Graph;
   export function parse(dot: string, options: ParseOption<typeof Types.Attribute>): Attribute;
   export function parse(dot: string, options: ParseOption<typeof Types.Attributes>): Attributes;
+  export function parse(dot: string, options: ParseOption<typeof Types.Subgraph>): Subgraph;
   export function parse(dot: string, options: ParseOption<typeof Types.ClusterStatements>): ClusterStatement[];
-  export function parse(dot: string, options?: ParseOption): Graph | ClusterStatement | ClusterStatement[] {
+  export function parse(dot: string, options: ParseOption): Graph | ClusterStatement | ClusterStatement[];
+  export function parse(
+    dot: string,
+    { rule }: ParseOption = {},
+  ): Graph | ClusterStatement | Subgraph | ClusterStatement[] {
     try {
       return _parse(dot, {
-        startRule: options?.rule,
+        startRule: rule,
       });
     } catch (error) {
       Object.setPrototypeOf(error, SyntaxError.prototype);

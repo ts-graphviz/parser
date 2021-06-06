@@ -1,6 +1,10 @@
-import { RootCluster } from 'ts-graphviz';
+import { Edge, Node, RootCluster, Subgraph } from 'ts-graphviz';
 import { convert } from './convert';
 import { AST } from './ast';
+
+export type Rule = 'graph' | 'node' | 'edge' | 'subgraph';
+
+export type ParseOption<T extends Rule = Rule> = AST.ParseOption<T>;
 
 /**
  * Parse string written in dot language and convert it to a model.
@@ -44,8 +48,16 @@ import { AST } from './ast';
  * @param dot string written in the dot language.
  * @throws {SyntaxError}
  */
-export function parse(dot: string): RootCluster {
-  const ast = AST.parse(dot);
+export function parse(dot: string): RootCluster;
+export function parse(dot: string, options?: ParseOption<'graph'>): RootCluster;
+export function parse(dot: string, options?: ParseOption<'edge'>): Edge;
+export function parse(dot: string, options?: ParseOption<'node'>): Node;
+export function parse(dot: string, options?: ParseOption<'subgraph'>): Subgraph;
+export function parse(dot: string, options?: ParseOption): RootCluster | Subgraph | Node | Edge {
+  const ast = AST.parse(dot, { rule: options?.rule });
+  if (Array.isArray(ast) || ast.type === AST.Types.Attribute || ast.type === AST.Types.Attributes) {
+    throw new Error();
+  }
   return convert(ast);
 }
 

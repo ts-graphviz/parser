@@ -166,6 +166,7 @@ function peg$parse(input: string, options?: IParseOptions) {
 
   const peg$startRuleFunctions: { [id: string]: any } = {
     graph: peg$parsegraph,
+    subgraph: peg$parsesubgraph,
     node: peg$parsenode,
     edge: peg$parseedge,
     attributes: peg$parseattributes,
