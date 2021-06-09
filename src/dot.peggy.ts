@@ -170,15 +170,15 @@ function peg$parse(input: string, options?: IParseOptions) {
   const peg$FAILED: Readonly<any> = {};
 
   const peg$startRuleFunctions: { [id: string]: any } = {
-    Graph: peg$parseGraph,
-    Subgraph: peg$parseSubgraph,
-    Node: peg$parseNode,
-    Edge: peg$parseEdge,
-    Attributes: peg$parseAttributes,
-    Attribute: peg$parseAttribute,
-    ClusterStatements: peg$parseClusterStatements,
+    graph: peg$parsegraph,
+    subgraph: peg$parsesubgraph,
+    node: peg$parsenode,
+    edge: peg$parseedge,
+    attributes: peg$parseattributes,
+    attribute: peg$parseattribute,
+    cluster_statements: peg$parsecluster_statements,
   };
-  let peg$startRuleFunction: () => any = peg$parseGraph;
+  let peg$startRuleFunction: () => any = peg$parsegraph;
 
   const peg$c0 = 'strict';
   const peg$c1 = peg$literalExpectation('strict', true);
@@ -2191,7 +2191,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return new SyntaxError(SyntaxError.buildMessage(expected1, found), expected1, found, location1);
   }
 
-  function peg$parseGraph(): any {
+  function peg$parsegraph(): any {
     let s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12;
 
     s0 = peg$currPos;
@@ -2252,7 +2252,7 @@ function peg$parse(input: string, options?: IParseOptions) {
                     }
                   }
                   if ((s8 as any) !== peg$FAILED) {
-                    s9 = peg$parseClusterStatements();
+                    s9 = peg$parsecluster_statements();
                     if ((s9 as any) === peg$FAILED) {
                       s9 = null;
                     }
@@ -2326,7 +2326,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseClusterStatements(): any {
+  function peg$parsecluster_statements(): any {
     let s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10;
 
     s0 = peg$currPos;
@@ -2459,7 +2459,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseAttribute(): any {
+  function peg$parseattribute(): any {
     let s0, s1, s2, s3, s4, s5, s6;
 
     s0 = peg$currPos;
@@ -2525,7 +2525,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseAttributes(): any {
+  function peg$parseattributes(): any {
     let s0, s1, s2, s3;
 
     s0 = peg$currPos;
@@ -2595,7 +2595,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseEdge(): any {
+  function peg$parseedge(): any {
     let s0, s1, s2, s3, s4;
 
     s0 = peg$currPos;
@@ -2644,7 +2644,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseNode(): any {
+  function peg$parsenode(): any {
     let s0, s1, s2, s3;
 
     s0 = peg$currPos;
@@ -2690,15 +2690,15 @@ function peg$parse(input: string, options?: IParseOptions) {
   function peg$parse_cluster_statement(): any {
     let s0;
 
-    s0 = peg$parseAttribute();
+    s0 = peg$parseattribute();
     if ((s0 as any) === peg$FAILED) {
-      s0 = peg$parseAttributes();
+      s0 = peg$parseattributes();
       if ((s0 as any) === peg$FAILED) {
-        s0 = peg$parseEdge();
+        s0 = peg$parseedge();
         if ((s0 as any) === peg$FAILED) {
-          s0 = peg$parseSubgraph();
+          s0 = peg$parsesubgraph();
           if ((s0 as any) === peg$FAILED) {
-            s0 = peg$parseNode();
+            s0 = peg$parsenode();
           }
         }
       }
@@ -2904,7 +2904,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     s0 = peg$currPos;
     s1 = peg$parse_();
     if ((s1 as any) !== peg$FAILED) {
-      s2 = peg$parseNodeRef();
+      s2 = peg$parsenode_ref();
       if ((s2 as any) !== peg$FAILED) {
         s3 = peg$parse_();
         if ((s3 as any) !== peg$FAILED) {
@@ -3012,7 +3012,7 @@ function peg$parse(input: string, options?: IParseOptions) {
 
     s0 = peg$parse_edge_target_group();
     if ((s0 as any) === peg$FAILED) {
-      s0 = peg$parseNodeRef();
+      s0 = peg$parsenode_ref();
     }
 
     return s0;
@@ -3087,7 +3087,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseNodeRef(): any {
+  function peg$parsenode_ref(): any {
     let s0, s1, s2;
 
     s0 = peg$currPos;
@@ -3184,7 +3184,7 @@ function peg$parse(input: string, options?: IParseOptions) {
     return s0;
   }
 
-  function peg$parseSubgraph(): any {
+  function peg$parsesubgraph(): any {
     let s0, s1, s2, s3, s4, s5;
 
     s0 = peg$currPos;
@@ -3241,7 +3241,7 @@ function peg$parse(input: string, options?: IParseOptions) {
         }
       }
       if ((s2 as any) !== peg$FAILED) {
-        s3 = peg$parseClusterStatements();
+        s3 = peg$parsecluster_statements();
         if ((s3 as any) === peg$FAILED) {
           s3 = null;
         }
