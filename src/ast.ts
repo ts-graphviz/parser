@@ -139,57 +139,76 @@ export namespace AST {
    * import { AST } from '@ts-graphviz/parser';
    *
    * const ast = AST.parse(`
-   *   strict digraph example {
-   *     subgraph cluster_0 {
-   *       label="Subgraph A";
-   *       a -> b -> c -> d;
-   *     }
-   *
-   *     subgraph cluster_1 {
-   *       label="Subgraph B";
-   *       a -> f;
-   *       f -> c;
-   *     }
+   *   digraph example {
+   *     node1 [
+   *       label = "My Node",
+   *     ]
    *   }
    * `);
    *
    * console.log(ast);
    * // {
-   * //   kind: 'graph',
-   * //   id: 'example',
+   * //   type: 'graph',
+   * //   id: {
+   * //     type: 'literal',
+   * //     value: 'example',
+   * //     quoted: false,
+   * //     location: {
+   * //       start: { offset: 11, line: 2, column: 11 },
+   * //       end: { offset: 18, line: 2, column: 18 }
+   * //     }
+   * //   },
    * //   directed: true,
-   * //   strict: true,
+   * //   strict: false,
    * //   body: [
    * //     {
-   * //       kind: 'subgraph',
-   * //       id: 'cluster_0',
-   * //       body: [
-   * //         { kind: 'attribute', key: 'label', value: 'Subgraph A' },
-   * //         {
-   * //           kind: 'edge',
-   * //           targets: [ { id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' } ],
-   * //           attributes: []
+   * //       type: 'node',
+   * //       id: {
+   * //         type: 'literal',
+   * //         value: 'node1',
+   * //         quoted: false,
+   * //         location: {
+   * //           start: { offset: 25, line: 3, column: 5 },
+   * //           end: { offset: 30, line: 3, column: 10 }
    * //         }
-   * //       ]
-   * //     },
-   * //     {
-   * //       kind: 'subgraph',
-   * //       id: 'cluster_1',
-   * //       body: [
-   * //         { kind: 'attribute', key: 'label', value: 'Subgraph B' },
+   * //       },
+   * //       attributes: [
    * //         {
-   * //           kind: 'edge',
-   * //           targets: [ { id: 'a' }, { id: 'f' } ],
-   * //           attributes: []
-   * //         },
-   * //         {
-   * //           kind: 'edge',
-   * //           targets: [ { id: 'f' }, { id: 'c' } ],
-   * //           attributes: []
+   * //           type: 'attribute',
+   * //           key: {
+   * //             type: 'literal',
+   * //             value: 'label',
+   * //             quoted: false,
+   * //             location: {
+   * //               start: { offset: 39, line: 4, column: 7 },
+   * //               end: { offset: 44, line: 4, column: 12 }
+   * //             }
+   * //           },
+   * //           value: {
+   * //             type: 'literal',
+   * //             value: 'My Node',
+   * //             quoted: true,
+   * //             location: {
+   * //               start: { offset: 47, line: 4, column: 15 },
+   * //               end: { offset: 56, line: 4, column: 24 }
+   * //             }
+   * //           },
+   * //           location: {
+   * //             start: { offset: 39, line: 4, column: 7 },
+   * //             end: { offset: 57, line: 4, column: 25 }
+   * //           }
    * //         }
-   * //       ]
+   * //       ],
+   * //       location: {
+   * //         start: { offset: 25, line: 3, column: 5 },
+   * //         end: { offset: 66, line: 6, column: 3 }
+   * //       }
    * //     }
-   * //   ]
+   * //   ],
+   * //   location: {
+   * //     start: { offset: 0, line: 1, column: 1 },
+   * //     end: { offset: 68, line: 7, column: 1 }
+   * //   }
    * // }
    * ```
    *
@@ -199,26 +218,51 @@ export namespace AST {
    * "attributes", "attribute", "cluster_statements".
    *
    * @example
-   * import { AST } from '@ts-graphviz/parser';
-   *
-   * const ast = AST.parse(
-   *   `test [
-   *     style=filled;
-   *     color=lightgrey;
-   *     label = "example #1";
-   *   ];`,
-   *   { rule: 'node' },
-   * );
+   * const ast = AST.parse('test [ style=filled; ];', { rule: 'node' });
    *
    * console.log(ast);
    * // {
    * //   type: 'node',
-   * //   id: 'test',
+   * //   id: {
+   * //     type: 'literal',
+   * //     value: 'test',
+   * //     quoted: false,
+   * //     location: {
+   * //       start: { offset: 0, line: 1, column: 1 },
+   * //       end: { offset: 4, line: 1, column: 5 }
+   * //     }
+   * //   },
    * //   attributes: [
-   * //     { key: 'style', value: 'filled' },
-   * //     { key: 'color', value: 'lightgrey' },
-   * //     { key: 'label', value: 'example #1' }
-   * //   ]
+   * //     {
+   * //       type: 'attribute',
+   * //       key: {
+   * //         type: 'literal',
+   * //         value: 'style',
+   * //         quoted: false,
+   * //         location: {
+   * //           start: { offset: 7, line: 1, column: 8 },
+   * //           end: { offset: 12, line: 1, column: 13 }
+   * //         }
+   * //       },
+   * //       value: {
+   * //         type: 'literal',
+   * //         value: 'filled',
+   * //         quoted: false,
+   * //         location: {
+   * //           start: { offset: 13, line: 1, column: 14 },
+   * //           end: { offset: 19, line: 1, column: 20 }
+   * //         }
+   * //       },
+   * //       location: {
+   * //         start: { offset: 7, line: 1, column: 8 },
+   * //         end: { offset: 20, line: 1, column: 21 }
+   * //       }
+   * //     }
+   * //   ],
+   * //   location: {
+   * //     start: { offset: 0, line: 1, column: 1 },
+   * //     end: { offset: 23, line: 1, column: 24 }
+   * //   }
    * // }
    *
    * @returns The AST object of the parse result is returned.

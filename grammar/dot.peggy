@@ -5,10 +5,10 @@
  */
 
 start
-  = graph
+  = Graph
 
-graph
-  = _ strict:"strict"i? _ type:("graph"i / "digraph"i) _ id:_literal? _ "{" body:cluster_statements ? _ "}" _ {
+Graph
+  = _ strict:"strict"i? _ type:("graph"i / "digraph"i) _ id:_literal? _ "{" body:ClusterStatements ? _ "}" _ {
     return {
       type: 'graph',
       id,
@@ -19,17 +19,10 @@ graph
     };
   }
 
-cluster_statements
+ClusterStatements
   = _ s:_cluster_statement _ ";"? e:(_ other:_cluster_statement _";"?  { return other; })* { return [s].concat(e); }
 
-_cluster_statement
-  = attribute
-  / attributes
-  / edge
-  / subgraph
-  / node
-
-attribute
+Attribute
   = key:_literal _ '=' _ value:_literal ';'? {
     return {
       type: 'attribute',
@@ -39,7 +32,7 @@ attribute
     };
   }
 
-attributes
+Attributes
   = kind:('graph'i/'node'i/'edge'i) attributes:_attribute_list ';'? {
     return {
       type: 'attributes',
@@ -48,6 +41,33 @@ attributes
       location: location(),
     };
   }
+
+Edge
+  = id:(_edge_target) rhs:_edge_rhs attributes:_attribute_list? ';'? {
+    return {
+      type: 'edge',
+      attributes:attributes || [],
+      targets: [id, ...rhs],
+      location: location(),
+    };
+  }
+
+Node
+  = id:_literal attributes:_attribute_list?';'? {
+    return {
+      type: 'node',
+      id: id,
+      attributes: attributes || [],
+      location: location(),
+    };
+  }
+
+_cluster_statement
+  = Attribute
+  / Attributes
+  / Edge
+  / Subgraph
+  / Node
 
 _attribute_list
   = _ '[' _ list:_a_list? _ ']' _ rest:_attribute_list? {
@@ -60,7 +80,7 @@ _a_list
   }
 
 _id_list
-  = _ id:node_ref _ ',' ? rest:_id_list? {
+  = _ id:NodeRef _ ',' ? rest:_id_list? {
     return [id].concat(rest || []);
   }
 
@@ -69,36 +89,15 @@ _edge_target_group
     return s
   }
 
-
 _edge_target
-  = _edge_target_group / node_ref
-
-edge
-  = id:(_edge_target) rhs:_edge_rhs attributes:_attribute_list? ';'? {
-    return {
-      type: 'edge',
-      attributes:attributes || [],
-      targets: [id, ...rhs],
-      location: location(),
-    };
-  }
+  = _edge_target_group / NodeRef
 
 _edge_rhs
   = _ edgeop:('->'/'--') _ id:_edge_target _ rest:_edge_rhs? {
     return [id].concat(rest || []);
   }
 
-node
-  = id:_literal attributes:_attribute_list?';'? {
-    return {
-      type: 'node',
-      id: id,
-      attributes: attributes || [],
-      location: location(),
-    };
-  }
-
-node_ref
+NodeRef
   = id:_literal port:_port? {
     return port ? {
       type: 'node_ref',
@@ -122,8 +121,8 @@ _port 'port'
     return { port };
   }
 
-subgraph
-  = id:('subgraph'i _ _id:_literal? _ { return _id; })? '{' body:cluster_statements? _ '}' {
+Subgraph
+  = id:('subgraph'i _ _id:_literal? _ { return _id; })? '{' body:ClusterStatements? _ '}' {
     if (id) {
       return {
         type:'subgraph',
