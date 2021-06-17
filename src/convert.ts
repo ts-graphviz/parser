@@ -14,20 +14,19 @@ function applyStatements(cluster: ICluster, statements: AST.ClusterStatement[]):
       case AST.Types.Node:
         cluster.node(
           stmt.id.value,
-          stmt.attributes.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+          stmt.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
         );
         break;
       case AST.Types.Edge:
         cluster.edge(
           stmt.targets.map((t) => ({ id: t.id.value, port: t.port?.value, compass: t.commpass?.value })),
-          stmt.attributes.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+          stmt.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
         );
         break;
       case AST.Types.Attributes:
-        const attrs: { [key: string]: string } = stmt.attributes.reduce(
-          (prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }),
-          {},
-        );
+        const attrs: { [key: string]: string } = stmt.body
+          .filter<AST.Attribute>((v): v is AST.Attribute => v.type === AST.Types.Attribute)
+          .reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {});
         switch (stmt.kind) {
           case AST.Attributes.Kind.Edge:
             cluster.edge(attrs);
@@ -44,12 +43,17 @@ function applyStatements(cluster: ICluster, statements: AST.ClusterStatement[]):
   }
 }
 
+export function convert(ast: AST.Dot): RootCluster;
 export function convert(ast: AST.Graph): RootCluster;
 export function convert(ast: AST.Subgraph): Subgraph;
 export function convert(ast: AST.Node): Node;
 export function convert(ast: AST.Edge): Edge;
-export function convert(ast: AST.Graph | AST.Subgraph | AST.Node | AST.Edge): RootCluster | Subgraph | Node | Edge;
-export function convert(ast: AST.Graph | AST.Subgraph | AST.Node | AST.Edge): RootCluster | Subgraph | Node | Edge {
+export function convert(
+  ast: AST.Dot | AST.Graph | AST.Subgraph | AST.Node | AST.Edge,
+): RootCluster | Subgraph | Node | Edge;
+export function convert(
+  ast: AST.Dot | AST.Graph | AST.Subgraph | AST.Node | AST.Edge,
+): RootCluster | Subgraph | Node | Edge {
   switch (ast.type) {
     case AST.Types.Graph:
       const Root = ast.directed ? Digraph : Graph;
@@ -63,15 +67,20 @@ export function convert(ast: AST.Graph | AST.Subgraph | AST.Node | AST.Edge): Ro
     case AST.Types.Edge:
       const edge = new Edge(
         ast.targets.map((t) => ({ id: t.id.value, port: t.port?.value, compass: t.commpass?.value })),
-        ast.attributes.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+        ast.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
       );
       return edge;
     case AST.Types.Node:
       const node = new Node(
         ast.id.value,
-        ast.attributes.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+        ast.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
       );
       return node;
+    case AST.Types.Dot:
+      const graph = ast.body.find((n): n is AST.Graph => n.type === AST.Types.Graph);
+      if (graph) {
+        return convert(graph);
+      }
     default:
       throw Error();
   }
