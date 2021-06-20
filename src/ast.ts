@@ -8,6 +8,7 @@ import { parse as _parse, IFileRange } from './dot.peggy';
  * @alpha
  */
 export namespace AST {
+  export type FileRange = IFileRange;
   type ValueOf<T> = T[keyof T];
 
   /**
@@ -42,7 +43,7 @@ export namespace AST {
      * must specify a type property.
      */
     type: string;
-    location: IFileRange;
+    location: FileRange;
   }
 
   export interface ASTBaseParent<STMT extends ASTBaseNode = ASTBaseNode> extends ASTBaseNode {
@@ -64,7 +65,7 @@ export namespace AST {
    */
   export interface Graph extends ASTBaseParent<ClusterStatement> {
     type: typeof Types.Graph;
-    id?: string;
+    id?: Literal;
     directed: boolean;
     strict: boolean;
   }

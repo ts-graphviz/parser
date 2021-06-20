@@ -185,7 +185,7 @@ _slash_comment
   }
 
 _slash_comment_line
-  = "//" v:(!_newline v:. { return v; })* _newline? {
+  = _ "//" v:(!_newline v:. { return v; })* _newline? {
     return v.join('');
   }
 
@@ -200,7 +200,7 @@ _macro_comment
   }
 
 _macro_comment_line
-  = "#" v:(!_newline v:. { return v; })* _newline? {
+  = _ "#" v:(!_newline v:. { return v; })* _newline? {
     return v.join('');
   }
 

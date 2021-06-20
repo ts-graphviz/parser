@@ -1,26 +1,60 @@
-import { ICluster, Digraph, Graph, RootCluster, Subgraph, Node, Edge } from 'ts-graphviz';
+import { ICluster, Digraph, Graph, RootCluster, Subgraph, Node, Edge, IHasComment } from 'ts-graphviz';
 import { AST } from './ast';
 
+class CommentHolder {
+  public comment: AST.Comment | null = null;
+
+  public set(comment: AST.Comment): void {
+    this.comment = comment;
+  }
+
+  public reset(): void {
+    this.comment = null;
+  }
+
+  public apply(model: IHasComment, location: AST.FileRange): void {
+    if (this.comment?.kind === AST.Comment.Kind.Block) {
+      if (this.comment?.location.end.line === location.start.line - 1) {
+        model.comment = this.comment.value;
+      }
+    } else {
+      if (this.comment?.location.end.line === location.start.line) {
+        model.comment = this.comment.value;
+      }
+    }
+    this.reset();
+  }
+}
+
 function applyStatements(cluster: ICluster, statements: AST.ClusterStatement[]): void {
+  const commentHolder = new CommentHolder();
   for (const stmt of statements) {
     switch (stmt.type) {
       case AST.Types.Subgraph:
         const subgraph = stmt.id ? cluster.subgraph(stmt.id.value) : cluster.subgraph();
         applyStatements(subgraph, stmt.body);
+        commentHolder.apply(subgraph, stmt.location);
         break;
       case AST.Types.Attribute:
         cluster.set(stmt.key.value, stmt.value.value);
+        commentHolder.reset();
         break;
       case AST.Types.Node:
-        cluster.node(
-          stmt.id.value,
-          stmt.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+        commentHolder.apply(
+          cluster.node(
+            stmt.id.value,
+            stmt.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+          ),
+          stmt.location,
         );
         break;
       case AST.Types.Edge:
-        cluster.edge(
-          stmt.targets.map((t) => ({ id: t.id.value, port: t.port?.value, compass: t.commpass?.value })),
-          stmt.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+        commentHolder.apply(
+          cluster.edge(
+            stmt.targets.map((t) => ({ id: t.id.value, port: t.port?.value, compass: t.commpass?.value })),
+            stmt.body.reduce((prev, curr) => ({ ...prev, [curr.key.value]: curr.value.value }), {}),
+          ),
+          stmt.location,
         );
         break;
       case AST.Types.Attributes:
@@ -38,7 +72,10 @@ function applyStatements(cluster: ICluster, statements: AST.ClusterStatement[]):
             cluster.graph(attrs);
             break;
         }
+        commentHolder.reset();
         break;
+      case AST.Types.Comment:
+        commentHolder.set(stmt);
     }
   }
 }
@@ -57,7 +94,7 @@ export function convert(
   switch (ast.type) {
     case AST.Types.Graph:
       const Root = ast.directed ? Digraph : Graph;
-      const root = new Root(ast.id, ast.strict);
+      const root = new Root(ast.id?.value, ast.strict);
       applyStatements(root, ast.body);
       return root;
     case AST.Types.Subgraph:
@@ -77,9 +114,17 @@ export function convert(
       );
       return node;
     case AST.Types.Dot:
-      const graph = ast.body.find((n): n is AST.Graph => n.type === AST.Types.Graph);
-      if (graph) {
-        return convert(graph);
+      const commentHolder = new CommentHolder();
+      for (const stmt of ast.body) {
+        switch (stmt.type) {
+          case AST.Types.Comment:
+            commentHolder.set(stmt);
+            break;
+          case AST.Types.Graph:
+            const graph = convert(stmt);
+            commentHolder.apply(graph, stmt.location);
+            return graph;
+        }
       }
     default:
       throw Error();
