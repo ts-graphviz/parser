@@ -19,7 +19,7 @@ const files = glob.sync(`${__dirname}/e2e/*`).sort();
 for (const file of files) {
   const title = path.basename(file);
   const dot = fs.readFileSync(file, 'utf-8').toString();
-  const snapshot = path.resolve(__dirname, '__snapshots__', `${title}__e2e.test.ts.snap`);
+  const snapshot = path.resolve(__dirname, '__snapshots__', title);
 
   test(title, () => {
     try {
