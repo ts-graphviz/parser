@@ -24,7 +24,9 @@ class Compiler {
       case AST.Types.Attribute:
         return `${this.stringify(ast.key)} = ${this.stringify(ast.value)};`;
       case AST.Types.Attributes:
-        return `${ast.kind} [\n${ast.body.map(this.stringify.bind(this)).map(this.indent).join('\n')}\n]`;
+        return ast.body.length === 0
+          ? `${ast.kind};`
+          : `${ast.kind} [\n${ast.body.map(this.stringify.bind(this)).map(this.indent.bind(this)).join('\n')}\n];`;
       case AST.Types.Comment:
         switch (ast.kind) {
           case AST.Comment.Kind.Block:
@@ -37,28 +39,36 @@ class Compiler {
       case AST.Types.Dot:
         return ast.body.map(this.stringify.bind(this)).join('\n');
       case AST.Types.Edge:
-        return `${ast.targets.map(this.stringify.bind(this)).join(this.directed ? ' -> ' : ' -- ')} [\n${ast.body
-          .map(this.stringify.bind(this))
-          .map(this.indent)
-          .join('\n')}\n];`;
+        const targets = ast.targets.map(this.stringify.bind(this)).join(this.directed ? ' -> ' : ' -- ');
+        return ast.body.length === 0
+          ? `${targets};`
+          : `${targets} [\n${ast.body.map(this.stringify.bind(this)).map(this.indent.bind(this)).join('\n')}\n];`;
       case AST.Types.Node:
-        return `${this.stringify(ast.id)} [\n${ast.body
-          .map(this.stringify.bind(this))
-          .map(this.indent)
-          .join('\n')}\n];`;
+        return ast.body.length == 0
+          ? `${this.stringify(ast.id)};`
+          : `${this.stringify(ast.id)} [\n${ast.body
+              .map(this.stringify.bind(this))
+              .map(this.indent.bind(this))
+              .join('\n')}\n];`;
       case AST.Types.NodeRef:
-        return [this.stringify(ast.id), ast.port ? this.stringify(ast.port) : null, ast.compass ? ast.compass : null]
+        return [
+          this.stringify(ast.id),
+          ast.port ? this.stringify(ast.port) : null,
+          ast.compass ? this.stringify(ast.compass) : null,
+        ]
           .filter((v) => v !== null)
           .join(':');
       case AST.Types.NodeRefGroup:
-        return `{${ast.body.map(this.stringify).join(' ')}}`;
+        return `{${ast.body.map(this.stringify.bind(this)).join(' ')}}`;
       case AST.Types.Graph:
         this.directed = ast.directed;
         return [
           ast.strict ? 'strict' : null,
           ast.directed ? 'digraph' : 'graph',
           ast.id ? this.stringify(ast.id) : null,
-          `{\n${ast.body.map(this.stringify).map(this.indent).join('\n')}\n}`,
+          ast.body.length === 0
+            ? '{}'
+            : `{\n${ast.body.map(this.stringify.bind(this)).map(this.indent.bind(this)).join('\n')}\n}`,
         ]
           .filter((v) => v !== null)
           .join(' ');
@@ -66,7 +76,9 @@ class Compiler {
         return [
           'subgraph',
           ast.id ? this.stringify(ast.id) : null,
-          `{\n${ast.body.map(this.stringify).map(this.indent).join('\n')}\n}`,
+          ast.body.length === 0
+            ? '{}'
+            : `{\n${ast.body.map(this.stringify.bind(this)).map(this.indent.bind(this)).join('\n')}\n}`,
         ]
           .filter((v) => v !== null)
           .join(' ');
