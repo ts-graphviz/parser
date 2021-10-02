@@ -13,7 +13,7 @@ Graphviz dot language parser for ts-graphviz.
 
 ## Key Feature
 
-- Parse function that converts the DOT language to a [ta-graphviz](https://github.com/ts-graphviz/ts-graphviz) model.
+- Parse function that converts the DOT language to a [ts-graphviz](https://github.com/ts-graphviz/ts-graphviz) model.
 - Provides module that enables operations at AST level.
 - TypeScript Support.
 - Supports multiple runtime and module.
